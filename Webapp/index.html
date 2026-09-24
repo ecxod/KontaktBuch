@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#173b38">
+  <meta name="description" content="Dein persönliches CardDAV-Kontaktbuch">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Kontaktbuch">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+  <title>Kontaktbuch</title>
+</head>
+<body id="appBody">
+  <div class="app-shell" id="appShell">
+    <header class="topbar" id="appHeader">
+      <a class="brand" id="appBrand" href="./" aria-label="Kontaktbuch Startseite">
+        <span class="brand-mark" id="brandMark" aria-hidden="true"><span id="brandMarkBarOne"></span><span id="brandMarkBarTwo"></span><span id="brandMarkBarThree"></span></span>
+        <span class="brand-copy" id="brandCopy">
+          <span class="eyebrow" id="brandEyebrow">PRIVATE CARDAV</span>
+          <strong id="brandName">Kontaktbuch</strong>
+        </span>
+      </a>
+      <div class="header-context" id="headerContext">
+        <div class="connection-summary" id="connectionSummary">
+          <span class="updated-label" id="lastUpdated">Noch keine Synchronisation</span>
+        </div>
+      </div>
+      <div class="header-actions" id="headerToolbar">
+        <button class="tool-button" id="installButton" type="button" hidden>
+          <span class="tool-icon install-icon" id="installIcon" aria-hidden="true"></span>
+          <span class="button-label">Installieren</span>
+        </button>
+        <button class="tool-button icon-only" id="refreshButton" type="button" aria-label="Synchronisieren" title="Synchronisieren">
+          <span class="tool-icon refresh-icon" id="refreshIcon" aria-hidden="true"></span>
+        </button>
+        <button class="tool-button icon-only" id="settingsButton" type="button" aria-label="Einstellungen öffnen" title="Einstellungen">
+          <span class="tool-icon settings-icon" id="settingsIcon" aria-hidden="true"></span>
+        </button>
+        <button class="tool-button" id="logoutButton" type="button" aria-label="Abmelden" title="Abmelden">
+          <span class="tool-icon logout-icon" id="logoutIcon" aria-hidden="true"></span>
+          <span class="button-label">Abmelden</span>
+        </button>
+      </div>
+    </header>
+
+    <main id="appMain">
+
+      <section class="control-row" id="contactControls" aria-label="Kontaktfilter" hidden>
+        <div class="search-tools" id="searchTools">
+          <label class="search-box" id="searchField" for="searchInput">
+            <span class="search-icon" id="searchIcon" aria-hidden="true"></span>
+            <input id="searchInput" type="search" autocomplete="off" placeholder="Name, Nummer oder E-Mail" spellcheck="false">
+            <button class="clear-search" id="clearSearchButton" type="button" aria-label="Suche leeren" title="Suche leeren" hidden>&times;</button>
+          </label>
+          <nav class="alphabet-nav" id="alphabetNav" aria-label="Direkt zu einem Anfangsbuchstaben springen" hidden></nav>
+        </div>
+        <label class="sort-box" id="filterField" for="filterSelect">
+          <span class="sort-label">Filtern nach</span>
+          <select id="filterSelect" aria-label="Kontakte filtern">
+            <option value="all">Alle Felder</option>
+            <option value="name">Name</option>
+            <option value="phone">Telefon</option>
+            <option value="email">E-Mail</option>
+            <option value="organization">Organisation</option>
+            <option value="duplicates">Doubletten</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="list-heading" id="contactListHeading" aria-live="polite" hidden>
+        <div id="contactListHeadingContent">
+          <span class="list-title" id="contactListTitle">Kontakte</span>
+          <span class="contact-count" id="contactCount">0 Kontakte</span>
+        </div>
+        <button class="text-button" id="booksButton" type="button" hidden>Adressbuch wechseln</button>
+      </section>
+
+      <section class="books-panel" id="booksPanel" hidden aria-labelledby="booksPanelTitle">
+        <div class="books-panel-heading" id="booksPanelHeading">
+          <div id="booksPanelHeadingContent">
+            <span class="list-title" id="booksPanelTitle">Adressbücher</span>
+            <span class="contact-count" id="booksCount"></span>
+          </div>
+          <span class="books-hint">Zum Öffnen auswählen</span>
+        </div>
+        <div class="books-list" id="booksList"></div>
+      </section>
+
+      <div class="notice" id="notice" role="status" hidden>
+        <span class="notice-mark" aria-hidden="true">!</span>
+        <span id="noticeText"></span>
+        <button class="notice-close" id="noticeCloseButton" type="button" aria-label="Meldung schließen">&times;</button>
+      </div>
+
+      <section class="state-panel" id="welcomeState" aria-labelledby="welcomeTitle">
+        <p class="section-kicker">Keine Verbindung</p>
+        <h2 id="welcomeTitle">Mit CardDAV verbinden</h2>
+        <p class="state-copy">Server-Adresse und Zugangsdaten in den Einstellungen hinterlegen.</p>
+        <button class="primary-button" id="connectButton" type="button">
+          <span class="button-plus" aria-hidden="true">+</span>
+          CardDAV verbinden
+        </button>
+      </section>
+
+      <section class="loading-panel" id="loadingState" hidden aria-live="polite">
+        <span class="loading-spinner" aria-hidden="true"></span>
+        <span id="loadingText">Kontakte werden geladen ...</span>
+        <div class="sync-progress" id="syncProgressTrack" role="progressbar" aria-label="Synchronisationsfortschritt" aria-valuemin="0" aria-valuemax="1">
+          <span class="sync-progress-bar" id="syncProgressBar"></span>
+        </div>
+      </section>
+
+      <section class="empty-panel" id="emptyState" hidden aria-labelledby="emptyTitle">
+        <span class="empty-icon" aria-hidden="true"></span>
+        <h2 id="emptyTitle">Keine Treffer</h2>
+        <p>Versuche einen anderen Suchbegriff.</p>
+      </section>
+
+      <div class="contact-layout" id="contactLayout">
+        <div class="contact-list-column" id="contactListColumn">
+          <section class="contact-list" id="contactsList" aria-live="polite"></section>
+          <div class="load-more-sentinel" id="loadMoreSentinel" role="status" hidden>
+            <span id="loadMoreText">Weitere Kontakte werden geladen ...</span>
+          </div>
+        </div>
+        <aside class="contact-detail-pane" id="contactDetailPane" aria-live="polite" hidden>
+          <div class="detail-pane-heading" id="detailPaneHeading">
+            <div class="avatar avatar-tone-0" id="detailPaneAvatar"></div>
+            <div class="detail-pane-copy" id="detailPaneCopy">
+              <p class="section-kicker" id="detailPaneKicker">Kontakt</p>
+              <h2 id="detailPaneTitle"></h2>
+              <p id="detailPaneSubtitle" hidden></p>
+            </div>
+            <div class="detail-pane-actions" id="detailPaneActions">
+              <button class="primary-button detail-save-button" id="detailSaveButton" type="submit" form="contactEditForm" hidden>Speichern</button>
+              <button class="text-button" id="detailEditButton" type="button">Bearbeiten</button>
+              <button class="text-button" id="detailMergeButton" type="button">Zusammenführen</button>
+              <button class="text-button text-button-danger" id="detailDeleteButton" type="button">Löschen</button>
+              <button class="modal-close" id="detailPaneCloseButton" type="button" aria-label="Kontaktdetails schließen">&times;</button>
+            </div>
+          </div>
+          <div class="contact-details detail-pane-content" id="detailPaneContent"></div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="app-footer" id="appFooter">
+      <span class="footer-lock" id="footerLock" aria-hidden="true"></span>
+      <span id="footerText">Deine Zugangsdaten bleiben auf diesem Gerät.</span>
+      <span class="app-version" id="appVersion">v0.18.1</span>
+    </footer>
+  </div>
+
+  <dialog class="modal" id="settingsDialog" aria-labelledby="settingsTitle">
+    <form class="modal-card settings-card" id="settingsForm" method="dialog">
+      <div class="modal-header">
+        <div>
+          <p class="section-kicker">Verbindung</p>
+          <h2 id="settingsTitle">CardDAV-Einstellungen</h2>
+        </div>
+        <button class="modal-close" id="settingsCloseButton" type="button" aria-label="Einstellungen schließen">&times;</button>
+      </div>
+
+      <div class="form-fields">
+        <label class="field">
+          <span>Server-Adresse</span>
+          <input id="serverInput" name="server" type="url" inputmode="url" autocomplete="url" placeholder="https://dav.zp1.net/" required>
+          <small>Zum Beispiel https://dav.zp1.net/</small>
+        </label>
+        <div class="two-fields">
+          <label class="field">
+            <span>Benutzername</span>
+            <input id="usernameInput" name="username" type="text" autocomplete="username" required>
+          </label>
+          <label class="field">
+            <span>Passwort</span>
+            <input id="passwordInput" name="password" type="password" autocomplete="current-password" required>
+          </label>
+        </div>
+        <label class="field" id="bookField" hidden>
+          <span>Adressbuch</span>
+          <select id="bookSelect" name="book"></select>
+        </label>
+        <label class="checkbox-field">
+          <input id="rememberInput" name="remember" type="checkbox" checked>
+          <span class="fake-checkbox" aria-hidden="true"></span>
+          <span>Auf diesem Gerät merken</span>
+        </label>
+      </div>
+
+      <p class="security-note"><span class="small-lock" aria-hidden="true"></span>Die Verbindung erfolgt verschlüsselt per HTTPS.</p>
+
+      <div class="modal-actions">
+        <button class="secondary-button" id="settingsCancelButton" type="button">Abbrechen</button>
+        <button class="primary-button" id="settingsSaveButton" type="submit">Speichern &amp; verbinden</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="installDialog" aria-labelledby="installTitle">
+    <div class="modal-card install-card">
+      <div class="modal-header">
+        <div>
+          <p class="section-kicker">Auf dem iPhone</p>
+          <h2 id="installTitle">Kontaktbuch installieren</h2>
+        </div>
+        <button class="modal-close" id="installCloseButton" type="button" aria-label="Installationshinweis schließen">&times;</button>
+      </div>
+      <ol class="install-steps">
+        <li><span>1</span><strong>Teilen</strong> antippen</li>
+        <li><span>2</span><strong>Zum Home-Bildschirm</strong> wählen</li>
+        <li><span>3</span>Mit <strong>Hinzufügen</strong> bestätigen</li>
+      </ol>
+      <p class="install-footnote">Danach öffnet sich das Kontaktbuch wie eine normale App.</p>
+    </div>
+  </dialog>
+
+  <dialog class="modal" id="booksDialog" aria-labelledby="booksTitle">
+    <form class="modal-card" id="booksForm" method="dialog">
+      <div class="modal-header">
+        <div>
+          <p class="section-kicker">CardDAV</p>
+          <h2 id="booksTitle">Adressbuch auswählen</h2>
+        </div>
+        <button class="modal-close" id="booksCloseButton" type="button" aria-label="Adressbuchauswahl schließen">&times;</button>
+      </div>
+      <label class="field">
+        <span>Verfügbare Adressbücher</span>
+        <select id="booksDialogSelect"></select>
+      </label>
+      <div class="modal-actions">
+        <button class="secondary-button" id="booksCancelButton" type="button">Abbrechen</button>
+        <button class="primary-button" type="submit">Kontakte laden</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="mergeDialog" aria-labelledby="mergeTitle">
+    <form class="modal-card merge-card" id="mergeForm" method="dialog">
+      <div class="modal-header">
+        <div>
+          <p class="section-kicker">Kontakte</p>
+          <h2 id="mergeTitle">Kontakte zusammenführen</h2>
+        </div>
+        <button class="modal-close" id="mergeCloseButton" type="button" aria-label="Zusammenführen schließen">&times;</button>
+      </div>
+      <p class="merge-summary" id="mergeSummary">Der geöffnete Kontakt <strong id="mergePrimaryName"></strong> bleibt erhalten.</p>
+      <label class="field" id="mergeSearchField">
+        <span>Zweiten Kontakt suchen</span>
+        <input id="mergeSearchInput" name="mergeSearch" type="search" autocomplete="off" placeholder="Mindestens drei Zeichen">
+      </label>
+      <div class="merge-results" id="mergeResults" role="listbox" aria-label="Passende Kontakte">
+        <p class="merge-results-empty" id="mergeResultsEmpty">Mindestens drei Zeichen eingeben.</p>
+      </div>
+      <div class="modal-actions" id="mergeActions">
+        <button class="secondary-button" id="mergeCancelButton" type="button">Abbrechen</button>
+        <button class="primary-button" id="mergeSubmitButton" type="submit" disabled>Zusammenführen</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

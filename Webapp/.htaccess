@@ -1,0 +1,6 @@
+Options -Indexes
+DirectoryIndex index.html
+
+<FilesMatch "^(app\.js|styles\.css|manifest\.webmanifest|sw\.js|icon(-180|-192|-512)?\.svg|icon-180\.png|icon-192\.png|icon-512\.png)$">
+  Header set Cache-Control "public, max-age=3600"
+</FilesMatch>
